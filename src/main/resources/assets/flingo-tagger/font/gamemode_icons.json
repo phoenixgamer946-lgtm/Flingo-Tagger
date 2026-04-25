@@ -3,64 +3,64 @@
     {
       "type": "bitmap",
       "file": "flingo-tagger:gui/gamemode/axe.png",
-      "ascent": 8,
-      "height": 9,
+      "ascent": 7,
+      "height": 8,
       "chars": ["\uE001"]
     },
     {
       "type": "bitmap",
       "file": "flingo-tagger:gui/gamemode/mace.png",
-      "ascent": 8,
-      "height": 9,
+      "ascent": 7,
+      "height": 8,
       "chars": ["\uE002"]
     },
     {
       "type": "bitmap",
       "file": "flingo-tagger:gui/gamemode/nethop.png",
-      "ascent": 8,
-      "height": 9,
+      "ascent": 7,
+      "height": 8,
       "chars": ["\uE003"]
     },
     {
       "type": "bitmap",
       "file": "flingo-tagger:gui/gamemode/pot.png",
-      "ascent": 8,
-      "height": 9,
+      "ascent": 7,
+      "height": 8,
       "chars": ["\uE004"]
     },
     {
       "type": "bitmap",
       "file": "flingo-tagger:gui/gamemode/smp.png",
-      "ascent": 8,
-      "height": 9,
+      "ascent": 7,
+      "height": 8,
       "chars": ["\uE005"]
     },
     {
       "type": "bitmap",
       "file": "flingo-tagger:gui/gamemode/spear.png",
-      "ascent": 8,
-      "height": 9,
+      "ascent": 7,
+      "height": 8,
       "chars": ["\uE006"]
     },
     {
       "type": "bitmap",
       "file": "flingo-tagger:gui/gamemode/sword.png",
-      "ascent": 8,
-      "height": 9,
+      "ascent": 7,
+      "height": 8,
       "chars": ["\uE007"]
     },
     {
       "type": "bitmap",
       "file": "flingo-tagger:gui/gamemode/uhc.png",
-      "ascent": 8,
-      "height": 9,
+      "ascent": 7,
+      "height": 8,
       "chars": ["\uE008"]
     },
     {
       "type": "bitmap",
       "file": "flingo-tagger:gui/gamemode/vanilla.png",
-      "ascent": 8,
-      "height": 9,
+      "ascent": 7,
+      "height": 8,
       "chars": ["\uE009"]
     }
   ]
