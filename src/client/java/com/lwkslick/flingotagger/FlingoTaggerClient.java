@@ -53,7 +53,7 @@ public class FlingoTaggerClient implements ClientModInitializer {
 		});
 
 		// /flingotagger <player> command
-		ClientCommandRegistrationCallback.EVENT.register((dispatcher, _) ->
+		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
 				dispatcher.register(literal(MOD_ID)
 						.then(argument("player", word())
 								.executes(ctx -> {
@@ -74,7 +74,7 @@ public class FlingoTaggerClient implements ClientModInitializer {
 										TierCache.searchPlayer(name)
 												.thenAccept(p -> Minecraft.getInstance().execute(() ->
 														source.sendFeedback(printRankings(name, p.rankings()))))
-												.exceptionally(_ -> {
+												.exceptionally(ignored -> {
 													source.sendError(Component.literal("Could not find player " + name));
 													return null;
 												});

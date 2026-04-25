@@ -45,7 +45,7 @@ public record PlayerInfo(String uuid, String name, Map<String, Ranking> rankings
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApply(HttpResponse::body)
                 .thenApply(s -> gson.fromJson(s, PlayerInfo.class))
-                .whenComplete((_, t) -> {
+                .whenComplete((ignored, t) -> {
                     if (t != null) logger.warn("Error searching player {}", query, t);
                 });
     }
@@ -57,7 +57,7 @@ public record PlayerInfo(String uuid, String name, Map<String, Ranking> rankings
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApply(HttpResponse::body)
                 .thenApply(s -> gson.fromJson(s, new TypeToken<Map<String, Ranking>>() {}))
-                .whenComplete((_, t) -> {
+                .whenComplete((ignored, t) -> {
                     if (t != null) logger.warn("Error getting rankings for {}", uuid, t);
                 });
     }

@@ -35,7 +35,7 @@ public class TierCache {
     }
 
     public static Optional<Map<String, PlayerInfo.Ranking>> getPlayerRankings(UUID uuid) {
-        return TIERS.computeIfAbsent(uuid, _ -> {
+        return TIERS.computeIfAbsent(uuid, ignored -> {
             if (uuid.version() == 4) {
                 FlingoConfig cfg = FlingoTaggerClient.getManager().getConfig();
                 PlayerInfo.getRankings(FlingoTaggerClient.getHttpClient(), FlingoTaggerClient.GSON,
