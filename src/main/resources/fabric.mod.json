@@ -3,23 +3,22 @@
 	"id": "flingo-tagger",
 	"version": "${version}",
 	"name": "Flingo Tagger",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "Display player Flingo tier rankings in nametags and the tab list.",
 	"authors": [
-		"Me!"
+		"lwkSlick"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"sources": "https://github.com/phoenixgamer946-lgtm/Flingo-Tagger"
 	},
-	"license": "CC0-1.0",
+	"license": "MPL-2.0",
 	"icon": "assets/flingo-tagger/icon.png",
-	"environment": "*",
+	"environment": "client",
 	"entrypoints": {
 		"main": [
 			"com.lwkslick.flingotagger.FlingoTagger"
 		],
 		"client": [
-			"com.lwkslick.flingotagger.client.FlingoTaggerClient"
+			"com.lwkslick.flingotagger.FlingoTaggerClient"
 		]
 	},
 	"mixins": [
