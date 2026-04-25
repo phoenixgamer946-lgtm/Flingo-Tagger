@@ -45,6 +45,7 @@ public class FlingoTaggerClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		LOGGER.info("FlingoTagger built by lwkSlick - github.com/phoenixgamer946-lgtm/Flingo-Tagger");
 		TierCache.init();
+		UpdateChecker.check();
 
 		// Keybind to cycle gamemodes
 		net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper.registerKeyBinding(
