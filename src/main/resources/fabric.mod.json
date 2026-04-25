@@ -19,6 +19,9 @@
 		],
 		"client": [
 			"com.lwkslick.flingotagger.FlingoTaggerClient"
+		],
+		"modmenu": [
+			"com.lwkslick.flingotagger.FlingoModMenuEntry"
 		]
 	},
 	"mixins": [

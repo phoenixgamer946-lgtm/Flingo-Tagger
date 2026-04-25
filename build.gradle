@@ -8,6 +8,7 @@ group = project.maven_group
 
 repositories {
 	maven { url "https://maven.uku3lig.net/releases" }
+	maven { url "https://maven.terraformersmc.com/releases" }
 }
 
 loom {
@@ -37,6 +38,8 @@ dependencies {
 	annotationProcessor "org.projectlombok:lombok:1.18.36"
 	clientAnnotationProcessor "org.projectlombok:lombok:1.18.36"
 	modClientImplementation fabricApi.module("fabric-command-api-v2", project.fabric_api_version)
+
+	modCompileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
 }
 
 processResources {
