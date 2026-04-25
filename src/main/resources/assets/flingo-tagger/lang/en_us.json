@@ -1,0 +1,30 @@
+{
+  "flingotagger.config.title": "FlingoTagger Settings",
+  "flingotagger.config.tab.general": "General",
+  "flingotagger.config.tab.colors": "Colors",
+
+  "flingotagger.config.enabled": "Enabled",
+  "flingotagger.config.playerList": "Show in Tab List",
+  "flingotagger.config.showIcons": "Show Icons",
+  "flingotagger.config.showRetired": "Show Retired",
+  "flingotagger.config.highestMode": "Show Highest Tier",
+  "flingotagger.config.gameMode": "Game Mode",
+
+  "flingotagger.highest.never": "Never",
+  "flingotagger.highest.not_found": "When Not Found",
+  "flingotagger.highest.always": "Always",
+
+  "flingotagger.color.retired": "Retired",
+  "flingotagger.color.HT1": "High Tier 1",
+  "flingotagger.color.LT1": "Low Tier 1",
+  "flingotagger.color.HT2": "High Tier 2",
+  "flingotagger.color.LT2": "Low Tier 2",
+  "flingotagger.color.HT3": "High Tier 3",
+  "flingotagger.color.LT3": "Low Tier 3",
+  "flingotagger.color.HT4": "High Tier 4",
+  "flingotagger.color.LT4": "Low Tier 4",
+  "flingotagger.color.HT5": "High Tier 5",
+  "flingotagger.color.LT5": "Low Tier 5",
+
+  "key.flingotagger.gamemode": "Cycle Game Mode"
+}

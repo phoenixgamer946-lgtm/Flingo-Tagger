@@ -43,6 +43,7 @@ public class FlingoTaggerClient implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
+		LOGGER.info("FlingoTagger built by lwkSlick - github.com/phoenixgamer946-lgtm/Flingo-Tagger");
 		TierCache.init();
 
 		// Keybind to cycle gamemodes
