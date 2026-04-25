@@ -4,55 +4,69 @@ package com.lwkslick.flingotagger;
 
 import com.lwkslick.flingotagger.model.GameMode;
 import com.lwkslick.flingotagger.model.PlayerInfo;
-import com.lwkslick.flingotagger.FlingoTaggerClient;
-import com.lwkslick.flingotagger.FlingoConfig;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 
 public class TierCache {
+    // Keyed by lowercase username
+    private static final Map<String, Optional<Map<String, PlayerInfo.Ranking>>> TIERS = new ConcurrentHashMap<>();
+    // Populated from the first Firestore response's tiers map keys
     private static final List<GameMode> GAMEMODES = new ArrayList<>();
-    private static final Map<UUID, Optional<Map<String, PlayerInfo.Ranking>>> TIERS = new ConcurrentHashMap<>();
 
     public static void init() {
-        try {
-            GAMEMODES.clear();
-            FlingoConfig cfg = FlingoTaggerClient.getManager().getConfig();
-            GAMEMODES.addAll(GameMode.fetchGamemodes(
-                    FlingoTaggerClient.getHttpClient(), FlingoTaggerClient.GSON, cfg.getApiUrl()).get());
-            FlingoTaggerClient.LOGGER.info("Found {} gamemodes: {}", GAMEMODES.size(), GAMEMODES.stream().map(GameMode::id).toList());
-        } catch (ExecutionException e) {
-            FlingoTaggerClient.LOGGER.error("Failed to load gamemodes!", e);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        // No remote gamemode fetch needed — modes come from Firestore tiers map keys
+        FlingoTaggerClient.LOGGER.info("FlingoTagger TierCache initialised (Firestore backend)");
     }
 
     public static List<GameMode> getGamemodes() {
         return GAMEMODES.isEmpty() ? Collections.singletonList(GameMode.NONE) : GAMEMODES;
     }
 
-    public static Optional<Map<String, PlayerInfo.Ranking>> getPlayerRankings(UUID uuid) {
-        return TIERS.computeIfAbsent(uuid, ignored -> {
-            if (uuid.version() == 4) {
-                FlingoConfig cfg = FlingoTaggerClient.getManager().getConfig();
-                PlayerInfo.getRankings(FlingoTaggerClient.getHttpClient(), FlingoTaggerClient.GSON,
-                                FlingoTaggerClient.LOGGER, cfg.getApiUrl(), uuid)
-                        .thenAccept(info -> TIERS.put(uuid, Optional.ofNullable(info)));
+    /** Register gamemodes discovered from a Firestore tiers map. */
+    public static void registerGamemodes(Set<String> ids) {
+        for (String id : ids) {
+            if (GAMEMODES.stream().noneMatch(m -> m.id().equalsIgnoreCase(id))) {
+                GAMEMODES.add(new GameMode(id, id));
             }
+        }
+    }
+
+    /** Look up rankings by username (case-insensitive). Triggers async fetch if not cached. */
+    public static Optional<Map<String, PlayerInfo.Ranking>> getPlayerRankings(String username) {
+        String key = username.toLowerCase(Locale.ROOT);
+        return TIERS.computeIfAbsent(key, ignored -> {
+            PlayerInfo.fetchByName(
+                    FlingoTaggerClient.getHttpClient(),
+                    FlingoTaggerClient.GSON,
+                    FlingoTaggerClient.LOGGER,
+                    username
+            ).thenAccept(info -> {
+                if (info != null) {
+                    registerGamemodes(info.rankings().keySet());
+                    TIERS.put(key, Optional.of(info.rankings()));
+                } else {
+                    TIERS.put(key, Optional.empty());
+                }
+            });
             return Optional.empty();
         });
     }
 
-    public static CompletableFuture<PlayerInfo> searchPlayer(String query) {
-        FlingoConfig cfg = FlingoTaggerClient.getManager().getConfig();
-        return PlayerInfo.search(FlingoTaggerClient.getHttpClient(), FlingoTaggerClient.GSON,
-                FlingoTaggerClient.LOGGER, cfg.getApiUrl(), query).thenApply(p -> {
-            UUID uuid = parseUUID(p.uuid());
-            TIERS.put(uuid, Optional.of(p.rankings()));
-            return p;
+    /** Explicit search (used by /flingotagger command). Always fetches fresh. */
+    public static CompletableFuture<PlayerInfo> searchPlayer(String username) {
+        return PlayerInfo.fetchByName(
+                FlingoTaggerClient.getHttpClient(),
+                FlingoTaggerClient.GSON,
+                FlingoTaggerClient.LOGGER,
+                username
+        ).thenApply(info -> {
+            if (info == null) throw new RuntimeException("Player not found: " + username);
+            String key = username.toLowerCase(Locale.ROOT);
+            registerGamemodes(info.rankings().keySet());
+            TIERS.put(key, Optional.of(info.rankings()));
+            return info;
         });
     }
 
@@ -71,16 +85,6 @@ public class TierCache {
 
     public static GameMode findModeOrUgly(String id) {
         return findMode(id).orElseGet(() -> new GameMode(id, id));
-    }
-
-    private static UUID parseUUID(String uuid) {
-        try {
-            return UUID.fromString(uuid);
-        } catch (Exception e) {
-            long most = Long.parseUnsignedLong(uuid.substring(0, 16), 16);
-            long least = Long.parseUnsignedLong(uuid.substring(16), 16);
-            return new UUID(most, least);
-        }
     }
 
     private TierCache() {}

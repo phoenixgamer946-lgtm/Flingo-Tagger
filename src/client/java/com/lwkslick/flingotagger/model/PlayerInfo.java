@@ -2,11 +2,12 @@
 // https://github.com/mctiers-dev/TierTagger
 package com.lwkslick.flingotagger.model;
 
-import com.google.gson.annotations.SerializedName;
-import com.google.gson.reflect.TypeToken;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.Gson;
 import com.lwkslick.flingotagger.TierCache;
 import org.jetbrains.annotations.Nullable;
-import com.google.gson.Gson;
 import org.slf4j.Logger;
 
 import java.net.URI;
@@ -15,14 +16,11 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.UUID;
 
-public record PlayerInfo(String uuid, String name, Map<String, Ranking> rankings) {
+public record PlayerInfo(String name, Map<String, Ranking> rankings) {
 
-    public record Ranking(int tier, int pos,
-                          @Nullable @SerializedName("peak_tier") Integer peakTier,
-                          @Nullable @SerializedName("peak_pos") Integer peakPos,
-                          long attained, boolean retired) {
+    public record Ranking(int tier, int pos, @Nullable Integer peakTier, @Nullable Integer peakPos,
+                          boolean retired) {
 
         public int comparableTier() { return tier * 2 + pos; }
 
@@ -38,28 +36,77 @@ public record PlayerInfo(String uuid, String name, Map<String, Ranking> rankings
 
     public record NamedRanking(@Nullable GameMode mode, Ranking ranking) {}
 
-    public static CompletableFuture<PlayerInfo> search(HttpClient client, Gson gson, Logger logger, String apiUrl, String query) {
-        String endpoint = apiUrl + "/v2/profile/by-name/" + query;
-        HttpRequest request = HttpRequest.newBuilder(URI.create(endpoint)).GET().build();
+    private static final String FIRESTORE_BASE =
+            "https://firestore.googleapis.com/v1/projects/flingotier/databases/(default)/documents";
+    private static final String API_KEY = "AIzaSyAT9YzdiAoDxTRyTicpgLa9-twp1Z1iWfo";
+
+    /** Query Firestore for a player by username. Returns null if not found. */
+    public static CompletableFuture<@Nullable PlayerInfo> fetchByName(
+            HttpClient client, Gson gson, Logger logger, String username) {
+
+        String url = FIRESTORE_BASE + ":runQuery?key=" + API_KEY;
+        String body = """
+                {"structuredQuery":{"from":[{"collectionId":"players"}],"where":{"fieldFilter":{"field":{"fieldPath":"name"},"op":"EQUAL","value":{"stringValue":"%s"}}},"limit":1}}
+                """.formatted(username).strip();
+
+        HttpRequest request = HttpRequest.newBuilder(URI.create(url))
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .header("Content-Type", "application/json")
+                .build();
 
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApply(HttpResponse::body)
-                .thenApply(s -> gson.fromJson(s, PlayerInfo.class))
+                .thenApply(json -> parseFirestoreResponse(gson, json, username))
                 .whenComplete((ignored, t) -> {
-                    if (t != null) logger.warn("Error searching player {}", query, t);
+                    if (t != null) logger.warn("Error fetching Firestore player {}", username, t);
                 });
     }
 
-    public static CompletableFuture<Map<String, Ranking>> getRankings(HttpClient client, Gson gson, Logger logger, String apiUrl, UUID uuid) {
-        String endpoint = apiUrl + "/v2/profile/" + uuid + "/rankings";
-        HttpRequest request = HttpRequest.newBuilder(URI.create(endpoint)).GET().build();
+    private static @Nullable PlayerInfo parseFirestoreResponse(Gson gson, String json, String username) {
+        try {
+            JsonArray arr = gson.fromJson(json, JsonArray.class);
+            if (arr == null || arr.isEmpty()) return null;
+            JsonElement first = arr.get(0);
+            if (!first.isJsonObject()) return null;
+            JsonObject obj = first.getAsJsonObject();
+            if (!obj.has("document")) return null;
 
-        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(HttpResponse::body)
-                .thenApply(s -> gson.fromJson(s, new TypeToken<Map<String, Ranking>>() {}))
-                .whenComplete((ignored, t) -> {
-                    if (t != null) logger.warn("Error getting rankings for {}", uuid, t);
-                });
+            JsonObject fields = obj.getAsJsonObject("document").getAsJsonObject("fields");
+
+            // Parse tiers map
+            Map<String, Ranking> rankings = new LinkedHashMap<>();
+            if (fields.has("tiers")) {
+                JsonObject tiersFields = fields.getAsJsonObject("tiers")
+                        .getAsJsonObject("mapValue")
+                        .getAsJsonObject("fields");
+                for (Map.Entry<String, JsonElement> entry : tiersFields.entrySet()) {
+                    String tierStr = entry.getValue().getAsJsonObject()
+                            .get("stringValue").getAsString();
+                    Ranking r = parseTierString(tierStr);
+                    if (r != null) rankings.put(entry.getKey(), r);
+                }
+            }
+            return new PlayerInfo(username, rankings);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Parses tier strings like "HT1", "LT4", "HT5".
+     * H = high (pos 0), L = low (pos 1). Empty string = unranked (returns null).
+     */
+    private static @Nullable Ranking parseTierString(String tierStr) {
+        if (tierStr == null || tierStr.isBlank()) return null;
+        try {
+            // Format: [H|L]T[number]
+            char posChar = tierStr.charAt(0);
+            int pos = (posChar == 'H') ? 0 : 1;
+            int tier = Integer.parseInt(tierStr.substring(2));
+            return new Ranking(tier, pos, null, null, false);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public static Optional<NamedRanking> getHighestRanking(Map<String, Ranking> rankings) {

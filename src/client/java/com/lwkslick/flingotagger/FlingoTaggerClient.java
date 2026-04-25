@@ -61,12 +61,7 @@ public class FlingoTaggerClient implements ClientModInitializer {
 									String name = getString(ctx, "player");
 									net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource source = ctx.getSource();
 									Optional<Map<String, com.lwkslick.flingotagger.model.PlayerInfo.Ranking>> rankings =
-											Optional.ofNullable(Minecraft.getInstance().getConnection())
-													.flatMap(conn -> conn.getOnlinePlayers().stream()
-															.filter(p -> name.equalsIgnoreCase(p.getProfile().name()))
-															.findFirst()
-															.map(p -> p.getProfile().id()))
-													.flatMap(uuid -> TierCache.getPlayerRankings(uuid));
+											TierCache.getPlayerRankings(name);
 
 									if (rankings.isPresent()) {
 										source.sendFeedback(printRankings(name, rankings.get()));
@@ -118,7 +113,14 @@ public class FlingoTaggerClient implements ClientModInitializer {
 
 	public static Optional<com.lwkslick.flingotagger.model.PlayerInfo.NamedRanking> getPlayerTier(UUID uuid) {
 		GameMode mode = manager.getConfig().getGameMode();
-		return TierCache.getPlayerRankings(uuid).map(rankings -> {
+		String name = Optional.ofNullable(Minecraft.getInstance().getConnection())
+				.flatMap(conn -> conn.getOnlinePlayers().stream()
+						.filter(p -> uuid.equals(p.getProfile().id()))
+						.findFirst()
+						.map(p -> p.getProfile().name()))
+				.orElse(null);
+		if (name == null) return Optional.empty();
+		return TierCache.getPlayerRankings(name).map(rankings -> {
 			com.lwkslick.flingotagger.model.PlayerInfo.Ranking ranking = rankings.get(mode.id());
 			Optional<com.lwkslick.flingotagger.model.PlayerInfo.NamedRanking> highest = com.lwkslick.flingotagger.model.PlayerInfo.getHighestRanking(rankings);
 			FlingoConfig.HighestMode highestMode = manager.getConfig().getHighestMode();

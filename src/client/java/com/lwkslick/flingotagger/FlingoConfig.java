@@ -27,9 +27,6 @@ public class FlingoConfig implements Serializable {
     private int retiredColor = 0xa2d6ff;
     private LinkedTreeMap<String, Integer> tierColors = defaultColors();
 
-    // !! SWAP THIS for the real Flingo API URL when devs provide it !!
-    private String apiUrl = "https://mctiers.com/api";
-
     public GameMode getGameMode() {
         Optional<GameMode> opt = TierCache.findMode(this.gameMode);
         if (opt.isPresent()) {
