@@ -4,9 +4,7 @@
   "flingotagger.config.tab.colors": "Colors",
 
   "flingotagger.config.enabled": "Enabled",
-  "flingotagger.config.playerList": "Show in Tab List",
   "flingotagger.config.showIcons": "Show Icons",
-  "flingotagger.config.showRetired": "Show Retired",
   "flingotagger.config.highestMode": "Show Highest Tier",
   "flingotagger.config.gameMode": "Game Mode",
 
@@ -14,7 +12,6 @@
   "flingotagger.highest.not_found": "When Not Found",
   "flingotagger.highest.always": "Always",
 
-  "flingotagger.color.retired": "Retired",
   "flingotagger.color.HT1": "High Tier 1",
   "flingotagger.color.LT1": "Low Tier 1",
   "flingotagger.color.HT2": "High Tier 2",
@@ -29,6 +26,5 @@
   "key.flingotagger.gamemode": "Cycle Game Mode",
 
   "flingotagger.config.showNametag": "Show in Nametags",
-  "flingotagger.config.showInChat": "Show in Chat",
-  "flingotagger.config.showHoverTooltip": "Show Hover Tooltip"
+  "flingotagger.config.showInChat": "Show in Chat"
 }

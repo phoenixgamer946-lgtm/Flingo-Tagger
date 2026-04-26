@@ -4,10 +4,7 @@
 	"compatibilityLevel": "JAVA_21",
 	"client": [
 		"MixinPlayer",
-		"MixinPlayerTabOverlay",
-		"MixinTextDisplayRenderer",
-		"MixinPlayerTabOverlayTooltip",
-		"MixinChatHud"
+		"MixinTextDisplayRenderer"
 	],
 	"injectors": {
 		"defaultRequire": 1

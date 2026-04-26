@@ -39,19 +39,9 @@ public class FlingoConfigScreen extends TabbedConfigScreen<FlingoConfig> {
                             config::setEnabled
                     ),
                     CyclingOption.ofBoolean(
-                            "flingotagger.config.playerList",
-                            config.isPlayerList(),
-                            config::setPlayerList
-                    ),
-                    CyclingOption.ofBoolean(
                             "flingotagger.config.showIcons",
                             config.isShowIcons(),
                             config::setShowIcons
-                    ),
-                    CyclingOption.ofBoolean(
-                            "flingotagger.config.showRetired",
-                            config.isShowRetired(),
-                            config::setShowRetired
                     ),
                     CyclingOption.ofTranslatableEnum(
                             "flingotagger.config.highestMode",
@@ -71,16 +61,6 @@ public class FlingoConfigScreen extends TabbedConfigScreen<FlingoConfig> {
                             config.isShowNametag(),
                             config::setShowNametag
                     ),
-                    CyclingOption.ofBoolean(
-                            "flingotagger.config.showInChat",
-                            config.isShowInChat(),
-                            config::setShowInChat
-                    ),
-                    CyclingOption.ofBoolean(
-                            "flingotagger.config.showHoverTooltip",
-                            config.isShowHoverTooltip(),
-                            config::setShowHoverTooltip
-                    ),
             };
         }
     }
@@ -93,9 +73,6 @@ public class FlingoConfigScreen extends TabbedConfigScreen<FlingoConfig> {
         @Override
         protected WidgetCreator[] getWidgets(FlingoConfig config) {
             return new WidgetCreator[]{
-                    new ColorOption("flingotagger.color.retired",
-                            config.getRetiredColor(),
-                            config::setRetiredColor),
                     new ColorOption("flingotagger.color.HT1",
                             config.getTierColors().getOrDefault("HT1", 0xe8ba3a),
                             c -> config.getTierColors().put("HT1", c)),
