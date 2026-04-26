@@ -66,6 +66,21 @@ public class FlingoConfigScreen extends TabbedConfigScreen<FlingoConfig> {
                             gm -> config.setGameMode(gm.id()),
                             gm -> net.minecraft.network.chat.Component.literal(gm.title())
                     ),
+                    CyclingOption.ofBoolean(
+                            "flingotagger.config.showNametag",
+                            config.isShowNametag(),
+                            config::setShowNametag
+                    ),
+                    CyclingOption.ofBoolean(
+                            "flingotagger.config.showInChat",
+                            config.isShowInChat(),
+                            config::setShowInChat
+                    ),
+                    CyclingOption.ofBoolean(
+                            "flingotagger.config.showHoverTooltip",
+                            config.isShowHoverTooltip(),
+                            config::setShowHoverTooltip
+                    ),
             };
         }
     }

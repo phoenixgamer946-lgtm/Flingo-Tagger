@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.At;
 public class MixinPlayer {
     @ModifyReturnValue(method = "getDisplayName", at = @At("RETURN"))
     public Component prependTier(Component original) {
-        if (FlingoTaggerClient.getManager().getConfig().isEnabled()) {
+        if (FlingoTaggerClient.getManager().getConfig().isEnabled() && FlingoTaggerClient.getManager().getConfig().isShowNametag()) {
             Player self = (Player) (Object) this;
             return FlingoTaggerClient.appendTier(self.getUUID(), original);
         } else {

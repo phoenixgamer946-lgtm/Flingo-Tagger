@@ -24,6 +24,11 @@ public class FlingoConfig implements Serializable {
     private HighestMode highestMode = HighestMode.NOT_FOUND;
     private boolean showIcons = true;
     private boolean playerList = true;
+    private boolean showNametag = true;
+    private boolean showInChat = true;
+    private boolean showHoverTooltip = true;
+    private String tagPrefix = "";
+    private String tagSuffix = "";
     private int retiredColor = 0xa2d6ff;
     private LinkedTreeMap<String, Integer> tierColors = defaultColors();
 

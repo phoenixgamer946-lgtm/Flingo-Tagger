@@ -10,10 +10,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class TierCache {
-    // Keyed by lowercase username
-    private static final Map<String, Optional<Map<String, PlayerInfo.Ranking>>> TIERS = new ConcurrentHashMap<>();
-    // Populated from the first Firestore response's tiers map keys
+    private record CacheEntry(Optional<Map<String, PlayerInfo.Ranking>> data, long timestamp) {}
+    private static final Map<String, CacheEntry> TIERS = new ConcurrentHashMap<>();
     private static final List<GameMode> GAMEMODES = new ArrayList<>();
+    private static final long TTL_MS = 10 * 60 * 1000L; // 10 minutes
 
     public static void init() {
         // No remote gamemode fetch needed — modes come from Firestore tiers map keys
@@ -33,25 +33,32 @@ public class TierCache {
         }
     }
 
-    /** Look up rankings by username (case-insensitive). Triggers async fetch if not cached. */
+    /** Look up rankings by username (case-insensitive). Triggers async fetch if not cached or expired. */
     public static Optional<Map<String, PlayerInfo.Ranking>> getPlayerRankings(String username) {
         String key = username.toLowerCase(Locale.ROOT);
-        return TIERS.computeIfAbsent(key, ignored -> {
-            PlayerInfo.fetchByName(
-                    FlingoTaggerClient.getHttpClient(),
-                    FlingoTaggerClient.GSON,
-                    FlingoTaggerClient.LOGGER,
-                    username
-            ).thenAccept(info -> {
-                if (info != null) {
-                    registerGamemodes(info.rankings().keySet());
-                    TIERS.put(key, Optional.of(info.rankings()));
-                } else {
-                    TIERS.put(key, Optional.empty());
-                }
-            });
-            return Optional.empty();
+        CacheEntry existing = TIERS.get(key);
+        if (existing != null && System.currentTimeMillis() - existing.timestamp() < TTL_MS) {
+            return existing.data();
+        }
+        // Expired or missing — fetch async
+        if (existing == null) {
+            // Put empty placeholder so we don't fire multiple requests
+            TIERS.put(key, new CacheEntry(Optional.empty(), System.currentTimeMillis()));
+        }
+        PlayerInfo.fetchByName(
+                FlingoTaggerClient.getHttpClient(),
+                FlingoTaggerClient.GSON,
+                FlingoTaggerClient.LOGGER,
+                username
+        ).thenAccept(info -> {
+            if (info != null) {
+                registerGamemodes(info.rankings().keySet());
+                TIERS.put(key, new CacheEntry(Optional.of(info.rankings()), System.currentTimeMillis()));
+            } else {
+                TIERS.put(key, new CacheEntry(Optional.empty(), System.currentTimeMillis()));
+            }
         });
+        return existing != null ? existing.data() : Optional.empty();
     }
 
     /** Explicit search (used by /flingotagger command). Always fetches fresh. */
@@ -65,13 +72,14 @@ public class TierCache {
             if (info == null) throw new RuntimeException("Player not found: " + username);
             String key = username.toLowerCase(Locale.ROOT);
             registerGamemodes(info.rankings().keySet());
-            TIERS.put(key, Optional.of(info.rankings()));
+            TIERS.put(key, new CacheEntry(Optional.of(info.rankings()), System.currentTimeMillis()));
             return info;
         });
     }
 
     public static void clearCache() {
         TIERS.clear();
+        FlingoTaggerClient.LOGGER.info("FlingoTagger cache cleared.");
     }
 
     public static GameMode findNextMode(GameMode current) {

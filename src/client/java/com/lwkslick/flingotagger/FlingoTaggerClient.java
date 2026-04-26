@@ -57,6 +57,12 @@ public class FlingoTaggerClient implements ClientModInitializer {
 		// /flingotagger <player> command
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
 				dispatcher.register(literal(MOD_ID)
+						.then(literal("reload")
+								.executes(ctx -> {
+									TierCache.clearCache();
+									ctx.getSource().sendFeedback(Component.literal("[FlingoTagger] Cache cleared."));
+									return 0;
+								}))
 						.then(argument("player", word())
 								.executes(ctx -> {
 									String name = getString(ctx, "player");
@@ -95,13 +101,20 @@ public class FlingoTaggerClient implements ClientModInitializer {
 	// === Tier rendering ===
 
 	public static Component appendTier(UUID uuid, Component text) {
+		if (!manager.getConfig().isEnabled()) return text;
 		MutableComponent following = getPlayerTier(uuid)
 				.map(entry -> {
 					Component tierText = getRankingText(entry.ranking(), false);
+					String prefix = manager.getConfig().getTagPrefix();
+					String suffix = manager.getConfig().getTagSuffix();
+					MutableComponent tag = Component.empty();
+					if (!prefix.isEmpty()) tag.append(Component.literal(prefix));
 					if (manager.getConfig().isShowIcons() && entry.mode() != null && entry.mode().icon().isPresent()) {
-						return Component.literal(entry.mode().icon().get().toString()).append(tierText);
+						tag.append(Component.literal(entry.mode().icon().get().toString()));
 					}
-					return tierText.copy();
+					tag.append(tierText);
+					if (!suffix.isEmpty()) tag.append(Component.literal(suffix));
+					return tag;
 				})
 				.orElse(null);
 
@@ -110,6 +123,27 @@ public class FlingoTaggerClient implements ClientModInitializer {
 			return following.append(text);
 		}
 		return text;
+	}
+
+	public static Component appendChatTier(UUID uuid, Component original) {
+		if (!manager.getConfig().isEnabled() || !manager.getConfig().isShowInChat()) return original;
+		MutableComponent following = getPlayerTier(uuid)
+				.map(entry -> {
+					Component tierText = getRankingText(entry.ranking(), false);
+					String prefix = manager.getConfig().getTagPrefix();
+					String suffix = manager.getConfig().getTagSuffix();
+					MutableComponent tag = Component.empty();
+					if (!prefix.isEmpty()) tag.append(Component.literal(prefix));
+					if (manager.getConfig().isShowIcons() && entry.mode() != null && entry.mode().icon().isPresent()) {
+						tag.append(Component.literal(entry.mode().icon().get().toString()));
+					}
+					tag.append(tierText);
+					if (!suffix.isEmpty()) tag.append(Component.literal(suffix));
+					return tag;
+				})
+				.orElse(null);
+		if (following == null) return original;
+		return following.append(Component.literal(" ").withStyle(net.minecraft.ChatFormatting.GRAY)).append(original);
 	}
 
 	public static Optional<com.lwkslick.flingotagger.model.PlayerInfo.NamedRanking> getPlayerTier(UUID uuid) {
@@ -148,6 +182,29 @@ public class FlingoTaggerClient implements ClientModInitializer {
 					.append(Component.literal(")").withStyle(s -> s.withColor(net.minecraft.ChatFormatting.GRAY)));
 		}
 		return tierText;
+	}
+
+	public static Component buildHoverTooltip(UUID uuid) {
+		String name = Optional.ofNullable(Minecraft.getInstance().getConnection())
+				.flatMap(conn -> conn.getOnlinePlayers().stream()
+						.filter(p -> uuid.equals(p.getProfile().id()))
+						.findFirst()
+						.map(p -> p.getProfile().name()))
+				.orElse(null);
+		if (name == null) return null;
+		Optional<Map<String, com.lwkslick.flingotagger.model.PlayerInfo.Ranking>> rankings =
+				TierCache.getPlayerRankings(name);
+		if (rankings.isEmpty() || rankings.get().isEmpty()) return null;
+		MutableComponent tooltip = Component.literal("=== " + name + " ===\n")
+				.withStyle(net.minecraft.ChatFormatting.GOLD);
+		rankings.get().forEach((m, r) -> {
+			GameMode mode = TierCache.findModeOrUgly(m);
+			tooltip.append(mode.asStyled(true))
+					.append(Component.literal(": "))
+					.append(getRankingText(r, false))
+					.append(Component.literal("\n"));
+		});
+		return tooltip;
 	}
 
 	private static MutableComponent getTierText(int tier, int pos, boolean retired) {

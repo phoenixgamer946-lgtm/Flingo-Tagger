@@ -26,5 +26,9 @@
   "flingotagger.color.HT5": "High Tier 5",
   "flingotagger.color.LT5": "Low Tier 5",
 
-  "key.flingotagger.gamemode": "Cycle Game Mode"
+  "key.flingotagger.gamemode": "Cycle Game Mode",
+
+  "flingotagger.config.showNametag": "Show in Nametags",
+  "flingotagger.config.showInChat": "Show in Chat",
+  "flingotagger.config.showHoverTooltip": "Show Hover Tooltip"
 }

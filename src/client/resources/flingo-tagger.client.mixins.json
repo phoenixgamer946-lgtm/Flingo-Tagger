@@ -5,7 +5,9 @@
 	"client": [
 		"MixinPlayer",
 		"MixinPlayerTabOverlay",
-		"MixinTextDisplayRenderer"
+		"MixinTextDisplayRenderer",
+		"MixinPlayerTabOverlayTooltip",
+		"MixinChatHud"
 	],
 	"injectors": {
 		"defaultRequire": 1
